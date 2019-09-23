@@ -29,14 +29,11 @@ SOFTWARE.
 
 #include "esp-i2c-hal.h"
 
-static const char* TAG = "esp-i2c-hal";
-
-static const uint8_t ACK_CHECK_ENABLE = 1;
-static const uint8_t ACK_CHECK_DISABLE = 0;
+static const char* TAG = "esp_i2c_hal";
+static const uint8_t ACK_CHECK_EN = 1;
 
 i2c_hal_err_t i2c_hal_master_init() {
-    int i2c_master_port = I2C_HAL_MASTER_NUM;
-    ESP_LOGI(TAG, "Starting I2C master at port %d.", i2c_master_port);
+    ESP_LOGI(TAG, "Starting I2C master at port %d.", I2C_HAL_MASTER_NUM);
 
     i2c_config_t conf;
     conf.mode = I2C_MODE_MASTER;
@@ -46,10 +43,10 @@ i2c_hal_err_t i2c_hal_master_init() {
     conf.scl_pullup_en = GPIO_PULLUP_DISABLE;
     conf.master.clk_speed = I2C_HAL_MASTER_FREQ_HZ;
 
-    ESP_ERROR_CHECK(i2c_param_config(i2c_master_port, &conf));
+    ESP_ERROR_CHECK(i2c_param_config(I2C_HAL_MASTER_NUM, &conf));
     ESP_ERROR_CHECK(
         i2c_driver_install(
-            i2c_master_port,
+            I2C_HAL_MASTER_NUM,
             conf.mode,
             I2C_HAL_MASTER_RX_BUF_LEN,
             I2C_HAL_MASTER_TX_BUF_LEN,
@@ -60,55 +57,54 @@ i2c_hal_err_t i2c_hal_master_init() {
     return ESP_OK;
 }
 
-i2c_hal_err_t i2c_hal_master_read(uint8_t address, uint8_t *buffer, uint16_t length) {
+i2c_hal_err_t i2c_hal_master_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t length) {
     esp_err_t result;
-    i2c_cmd_handle_t command = i2c_cmd_link_create();
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
-    i2c_master_start(command);
+    i2c_master_start(cmd);
     i2c_master_write_byte(
-        command,
+        cmd,
         (address << 1) | I2C_MASTER_READ,
-        ACK_CHECK_ENABLE
+        ACK_CHECK_EN
     );
     if (length > 1) {
-        i2c_master_read(command, buffer, length - 1, I2C_MASTER_ACK);
+        i2c_master_read(cmd, buffer, length - 1, I2C_MASTER_ACK);
     }
-    i2c_master_read_byte(command, buffer + length - 1, I2C_MASTER_NACK);
-    i2c_master_stop(command);
+    i2c_master_read_byte(cmd, buffer + length - 1, I2C_MASTER_NACK);
+    i2c_master_stop(cmd);
+
     result = i2c_master_cmd_begin(
         I2C_HAL_MASTER_NUM,
-        command,
+        cmd,
         1000 / portTICK_RATE_MS
     );
-    i2c_cmd_link_delete(command);
+    i2c_cmd_link_delete(cmd);
 
     return result;
 }
 
-i2c_hal_err_t i2c_hal_master_write(uint8_t address, uint8_t *buffer, uint8_t size)
+i2c_hal_err_t i2c_hal_master_write(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size)
 {
     esp_err_t result;
-    i2c_cmd_handle_t command = i2c_cmd_link_create();
+    i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
-    i2c_master_start(command);
-    i2c_master_write_byte(
-        command,
-        (address << 1) | I2C_MASTER_WRITE,
-        ACK_CHECK_ENABLE
-    );
-    i2c_master_write(command, buffer, size, ACK_CHECK_ENABLE);
-    i2c_master_stop(command);
-    result = i2c_master_cmd_begin(
-        I2C_HAL_MASTER_NUM,
-        command,
-        1000 / portTICK_RATE_MS
-    );
-    i2c_cmd_link_delete(command);
+    ESP_LOGD(TAG, "Writing to register 0x%02x at 0x%02x", reg, address);
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, buffer, size, ESP_LOG_DEBUG);
+
+    i2c_master_start(cmd);
+    i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
+    i2c_master_write_byte(cmd, reg, ACK_CHECK_EN);
+    i2c_master_write(cmd, buffer, size, ACK_CHECK_EN);
+    i2c_master_stop(cmd);
+    result = i2c_master_cmd_begin(I2C_HAL_MASTER_NUM, cmd, 1000 / portTICK_RATE_MS);
+    i2c_cmd_link_delete(cmd);
+
+    ESP_ERROR_CHECK_WITHOUT_ABORT(result);
 
     return result;
 }
 
 i2c_hal_err_t i2c_hal_master_close() {
-    ESP_LOGI(TAG, "Closing I2C master at port %d.", I2C_HAL_MASTER_NUM);
-    return i2c_driver_delete();
+    ESP_LOGI(TAG, "Closing I2C master at port %d", I2C_HAL_MASTER_NUM);
+    return i2c_driver_delete(I2C_HAL_MASTER_NUM);
 }
