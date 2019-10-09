@@ -27,7 +27,7 @@ SOFTWARE.
 #include <freertos/FreeRTOS.h>
 #include <stdint.h>
 
-#include "esp-i2c-hal.h"
+#include "esp_i2c_hal.h"
 
 static const char* TAG = "esp_i2c_hal";
 static const uint8_t ACK_CHECK_EN = 1;
