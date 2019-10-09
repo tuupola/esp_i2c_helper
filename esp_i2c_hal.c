@@ -32,7 +32,7 @@ SOFTWARE.
 static const char* TAG = "esp_i2c_hal";
 static const uint8_t ACK_CHECK_EN = 1;
 
-i2c_hal_err_t i2c_hal_master_init() {
+int32_t i2c_hal_master_init() {
     ESP_LOGI(TAG, "Starting I2C master at port %d.", I2C_HAL_MASTER_NUM);
 
     i2c_config_t conf;
@@ -57,7 +57,7 @@ i2c_hal_err_t i2c_hal_master_init() {
     return ESP_OK;
 }
 
-i2c_hal_err_t i2c_hal_master_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t length) {
+int32_t i2c_hal_master_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t length) {
     esp_err_t result;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
 
@@ -83,7 +83,7 @@ i2c_hal_err_t i2c_hal_master_read(uint8_t address, uint8_t reg, uint8_t *buffer,
     return result;
 }
 
-i2c_hal_err_t i2c_hal_master_write(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size)
+int32_t i2c_hal_master_write(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size)
 {
     esp_err_t result;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -104,7 +104,7 @@ i2c_hal_err_t i2c_hal_master_write(uint8_t address, uint8_t reg, uint8_t *buffer
     return result;
 }
 
-i2c_hal_err_t i2c_hal_master_close() {
+int32_t i2c_hal_master_close() {
     ESP_LOGI(TAG, "Closing I2C master at port %d", I2C_HAL_MASTER_NUM);
     return i2c_driver_delete(I2C_HAL_MASTER_NUM);
 }
