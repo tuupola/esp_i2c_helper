@@ -45,7 +45,7 @@ extern "C" {
 
 int32_t i2c_hal_master_init();
 int32_t i2c_hal_master_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size);
-int32_t i2c_hal_master_write(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size);
+int32_t i2c_hal_master_write(uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size);
 int32_t i2c_hal_master_close();
 //int32_t i2c_hal_master_ioctl(int16_t command, void *buffer);
 

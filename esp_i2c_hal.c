@@ -102,7 +102,7 @@ int32_t i2c_hal_master_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint1
     return result;
 }
 
-int32_t i2c_hal_master_write(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size)
+int32_t i2c_hal_master_write(uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size)
 {
     esp_err_t result;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
