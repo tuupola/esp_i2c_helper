@@ -31,12 +31,12 @@ SOFTWARE.
 #include <freertos/FreeRTOS.h>
 #include <stdint.h>
 
-#include "esp_i2c_hal.h"
+#include "i2c_helper.h"
 
-static const char* TAG = "esp_i2c_hal";
+static const char* TAG = "i2c_helper";
 static const uint8_t ACK_CHECK_EN = 1;
 
-int32_t i2c_hal_master_init() {
+int32_t i2c_init() {
     ESP_LOGI(TAG, "Starting I2C master at port %d.", I2C_HAL_MASTER_NUM);
 
     i2c_config_t conf;
@@ -61,7 +61,7 @@ int32_t i2c_hal_master_init() {
     return ESP_OK;
 }
 
-int32_t i2c_hal_master_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t length) {
+int32_t i2c_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t length) {
 
     esp_err_t result;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -102,7 +102,7 @@ int32_t i2c_hal_master_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint1
     return result;
 }
 
-int32_t i2c_hal_master_write(uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size)
+int32_t i2c_write(uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size)
 {
     esp_err_t result;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
@@ -123,7 +123,7 @@ int32_t i2c_hal_master_write(uint8_t address, uint8_t reg, const uint8_t *buffer
     return result;
 }
 
-int32_t i2c_hal_master_close() {
+int32_t i2c_close() {
     ESP_LOGI(TAG, "Closing I2C master at port %d", I2C_HAL_MASTER_NUM);
     return i2c_driver_delete(I2C_HAL_MASTER_NUM);
 }

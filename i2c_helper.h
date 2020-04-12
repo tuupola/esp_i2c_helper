@@ -26,8 +26,8 @@ SOFTWARE.
 
 */
 
-#ifndef _I2C_HAL_MASTER_H
-#define _I2C_HAL_MASTER_H
+#ifndef _I2C_HELPER_H
+#define _I2C_HELPER_H
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,11 +43,11 @@ extern "C" {
 #define I2C_HAL_MASTER_RX_BUF_LEN   (0)
 #define I2C_HAL_MASTER_TX_BUF_LEN   (0)
 
-int32_t i2c_hal_master_init();
-int32_t i2c_hal_master_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size);
-int32_t i2c_hal_master_write(uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size);
-int32_t i2c_hal_master_close();
-//int32_t i2c_hal_master_ioctl(int16_t command, void *buffer);
+int32_t i2c_init();
+int32_t i2c_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size);
+int32_t i2c_write(uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size);
+int32_t i2c_close();
+//int32_t esp_i2c_hal_master_ioctl(int16_t command, void *buffer);
 
 #ifdef __cplusplus
 }
