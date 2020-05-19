@@ -1,4 +1,4 @@
 idf_component_register(
-    SRCS "esp_i2c_hal.c"
+    SRCS "i2c_helper.c"
     INCLUDE_DIRS "."
 )
