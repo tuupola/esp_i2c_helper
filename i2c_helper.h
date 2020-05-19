@@ -50,8 +50,8 @@ extern "C" {
 #define I2C_HELPER_MASTER_1_FREQ_HZ      (CONFIG_I2C_HELPER_MASTER_1_FREQ_HZ)
 
 int32_t i2c_init(i2c_port_t port);
-int32_t i2c_read(i2c_port_t port, uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size);
-int32_t i2c_write(i2c_port_t port, uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size);
+int32_t i2c_read(void *port, uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size);
+int32_t i2c_write(void *port, uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size);
 int32_t i2c_close(i2c_port_t port);
 
 #ifdef __cplusplus

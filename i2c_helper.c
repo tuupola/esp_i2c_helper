@@ -68,19 +68,20 @@ int32_t i2c_init(i2c_port_t port) {
     return ESP_OK;
 }
 
-int32_t i2c_read(i2c_port_t port, uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t length) {
+int32_t i2c_read(void *handle, uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t length) {
 
     esp_err_t result;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_port_t port = *(i2c_port_t *)handle;
 
     if (reg) {
         /* When reading specific register set the address pointer first. */
         i2c_master_start(cmd);
         i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
         i2c_master_write(cmd, &reg, 1, ACK_CHECK_EN);
-        ESP_LOGD(TAG, "Reading address 0x%02x register 0x%02x", address, reg);
+        ESP_LOGD(TAG, "Reading address 0x%02x register 0x%02x port %d", address, reg, port);
     } else {
-        ESP_LOGD(TAG, "Reading address 0x%02x", address);
+        ESP_LOGD(TAG, "Reading address 0x%02x port %d", address, port);
     }
 
     /* Read length bytes from the current pointer. */
@@ -109,12 +110,13 @@ int32_t i2c_read(i2c_port_t port, uint8_t address, uint8_t reg, uint8_t *buffer,
     return result;
 }
 
-int32_t i2c_write(i2c_port_t port, uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size)
+int32_t i2c_write(void *handle, uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size)
 {
     esp_err_t result;
     i2c_cmd_handle_t cmd = i2c_cmd_link_create();
+    i2c_port_t port = *(i2c_port_t *)handle;
 
-    ESP_LOGD(TAG, "Writing address 0x%02x register 0x%02x", address, reg);
+    ESP_LOGD(TAG, "Writing address 0x%02x register 0x%02x port %d", address, reg, port);
     ESP_LOG_BUFFER_HEX_LEVEL(TAG, buffer, size, ESP_LOG_DEBUG);
 
     i2c_master_start(cmd);
@@ -122,7 +124,11 @@ int32_t i2c_write(i2c_port_t port, uint8_t address, uint8_t reg, const uint8_t *
     i2c_master_write_byte(cmd, reg, ACK_CHECK_EN);
     i2c_master_write(cmd, (uint8_t *)buffer, size, ACK_CHECK_EN);
     i2c_master_stop(cmd);
-    result = i2c_master_cmd_begin(port, cmd, 1000 / portTICK_RATE_MS);
+    result = i2c_master_cmd_begin(
+        port,
+        cmd,
+        1000 / portTICK_RATE_MS
+    );
     i2c_cmd_link_delete(cmd);
 
     ESP_ERROR_CHECK_WITHOUT_ABORT(result);
