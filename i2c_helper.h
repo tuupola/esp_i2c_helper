@@ -34,20 +34,25 @@ extern "C" {
 #endif
 
 #include <stdint.h>
-#include <esp_err.h>
+#include <driver/i2c.h>
 
-#define I2C_HAL_MASTER_NUM          (1)
-#define I2C_HAL_MASTER_SDA          (21)
-#define I2C_HAL_MASTER_SCL          (22)
-#define I2C_HAL_MASTER_FREQ_HZ      (1000000)
-#define I2C_HAL_MASTER_RX_BUF_LEN   (0)
-#define I2C_HAL_MASTER_TX_BUF_LEN   (0)
+#include "sdkconfig.h"
 
-int32_t i2c_init();
-int32_t i2c_read(uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size);
-int32_t i2c_write(uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size);
-int32_t i2c_close();
-//int32_t esp_i2c_hal_master_ioctl(int16_t command, void *buffer);
+#define I2C_HELPER_MASTER_RX_BUF_LEN     (0)
+#define I2C_HELPER_MASTER_TX_BUF_LEN     (0)
+
+#define I2C_HELPER_MASTER_0_SDA          (CONFIG_I2C_HELPER_MASTER_0_SDA)
+#define I2C_HELPER_MASTER_0_SCL          (CONFIG_I2C_HELPER_MASTER_0_SCL)
+#define I2C_HELPER_MASTER_0_FREQ_HZ      (CONFIG_I2C_HELPER_MASTER_0_FREQ_HZ)
+
+#define I2C_HELPER_MASTER_1_SDA          (CONFIG_I2C_HELPER_MASTER_1_SDA)
+#define I2C_HELPER_MASTER_1_SCL          (CONFIG_I2C_HELPER_MASTER_1_SCL)
+#define I2C_HELPER_MASTER_1_FREQ_HZ      (CONFIG_I2C_HELPER_MASTER_1_FREQ_HZ)
+
+int32_t i2c_init(i2c_port_t port);
+int32_t i2c_read(i2c_port_t port, uint8_t address, uint8_t reg, uint8_t *buffer, uint16_t size);
+int32_t i2c_write(i2c_port_t port, uint8_t address, uint8_t reg, const uint8_t *buffer, uint16_t size);
+int32_t i2c_close(i2c_port_t port);
 
 #ifdef __cplusplus
 }
