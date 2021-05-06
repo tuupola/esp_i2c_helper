@@ -84,7 +84,7 @@ If your new driver is an ESP-IDF component that always needs to talk via I2C, th
 
 2. Uncomment the `#define` in the i2c_manager.h file within that directory to name your component:
 
-  `#define I2C_OEM componentXYZ`   <--- use short name of your component here, naturally
+	`#define I2C_OEM componentXYZ`   <--- use short name of your component here, naturally
 
 3. Make sure the `i2c_manager.c` file compiles when your component gets built, even though it's in a sub-directory. This is done by adding `"i2c_manager/i2c_manager.c"` to the SRCS directive of the `idf_component_register` command (in ESP-IDF 4.x) and/or adding `./i2c_manager` to `COMPONENT_SRCDIRS` in `component.mk` (for ESP-IDF 3.x).
 
@@ -92,11 +92,11 @@ If your new driver is an ESP-IDF component that always needs to talk via I2C, th
 
 4. Add the following to your component's `componentXYZ.h` file:
 
-  `void componentXYZ_i2c_locking(void* leader);`
+	`void componentXYZ_i2c_locking(void* leader);`
 
 5. Add the following inside your component's Kconfig menu:
 
-  `rsource "i2c_manager/Kconfig"`
+	`rsource "i2c_manager/Kconfig"`
 
 And voila: now I2C Manager is integrated inside the component, which now has built-in I2C support without external dependencies. To use it, use `componentXYZ_i2c_read` where you would otherwise use `i2c_manager_read` and the same for `componentXYZ_i2c_write`. The menuconfig will show the settings for both I2C ports. You may want to include a configuration option to determine which I2C port your component uses. If multiple components integrate I2C Manager in this way, the I2C port settings menu will show under each component, but they will show the same settings. A port open error will occur if multiple components use the same port, but I2C manager will just log a warning and continue when getting this error.
 
