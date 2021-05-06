@@ -40,6 +40,17 @@ SOFTWARE.
 
 #include "i2c_manager.h"
 
+
+#if defined __has_include
+	#if __has_include ("esp_idf_version.h")
+		#include "esp_idf_version.h"
+		#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(4, 3, 0)
+			#define HAS_CLK_FLAGS
+		#endif
+	#endif
+#endif
+
+
 static const char* TAG = I2C_TAG;
 
 static SemaphoreHandle_t I2C_FN(_local_mutex)[2] = { NULL, NULL };
@@ -68,7 +79,7 @@ static const uint8_t ACK_CHECK_EN = 1;
 
 	#define I2C_MANAGER_1_TIMEOUT 		CONFIG_I2C_MANAGER_1_TIMEOUT / portTICK_RATE_MS
 	#define I2C_MANAGER_1_LOCK_TIMEOUT	CONFIG_I2C_MANAGER_1_LOCK_TIMEOUT / portTICK_RATE_MS
-#endif
+#endif	
 
 esp_err_t I2C_FN(_init)(i2c_port_t port) {
 
@@ -81,6 +92,10 @@ esp_err_t I2C_FN(_init)(i2c_port_t port) {
 		I2C_FN(_mutex)[port] = xSemaphoreCreateMutex();
 
 		i2c_config_t conf;
+		
+		#ifdef HAS_CLK_FLAGS
+			conf.clk_flags = 0;
+		#endif
 
 		if (port == I2C_NUM_0) {
 			#if defined (CONFIG_I2C_MANAGER_0_ENABLED)
