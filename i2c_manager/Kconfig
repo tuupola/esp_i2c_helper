@@ -8,10 +8,12 @@ menu "I2C Port Settings"
 		if I2C_MANAGER_0_ENABLED
 			config I2C_MANAGER_0_SDA
 				int "SDA (GPIO pin)"
+				default 21
 				range 0 39 if IDF_TARGET_ESP32
 				range 0 43 if IDF_TARGET_ESP32S2
 			config I2C_MANAGER_0_SCL
 				int "SCL (GPIO pin)"
+				default 22
 				range 0 39 if IDF_TARGET_ESP32
 				range 0 43 if IDF_TARGET_ESP32S2
 			config I2C_MANAGER_0_FREQ_HZ
