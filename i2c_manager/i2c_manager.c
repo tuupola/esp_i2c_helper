@@ -159,7 +159,7 @@ esp_err_t I2C_FN(_read)(i2c_port_t port, uint8_t addr, uint8_t reg, uint8_t *buf
 		ESP_LOGD(TAG, "Reading addr CONFIG_I2C_MANAGER_1_ENABLED0x%02x port %d", addr, port);
 	}
 
-	TickType_t timeout;
+	TickType_t timeout = 0;
 	#if defined (CONFIG_I2C_MANAGER_0_ENABLED)
 		if (port == I2C_NUM_0) {
 			timeout = (CONFIG_I2C_MANAGER_0_TIMEOUT) / portTICK_RATE_MS;
@@ -217,7 +217,7 @@ esp_err_t I2C_FN(_write)(i2c_port_t port, uint8_t addr, uint8_t reg, const uint8
 
     ESP_LOGD(TAG, "Writing addr 0x%02x reg 0x%02x port %d", addr, reg, port);
 
-	TickType_t timeout;
+	TickType_t timeout = 0;
 	#if defined (CONFIG_I2C_MANAGER_0_ENABLED)
 		if (port == I2C_NUM_0) {
 			timeout = (CONFIG_I2C_MANAGER_0_TIMEOUT) / portTICK_RATE_MS;
