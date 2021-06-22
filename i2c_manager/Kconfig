@@ -11,11 +11,13 @@ menu "I2C Port Settings"
 				default 21
 				range 0 39 if IDF_TARGET_ESP32
 				range 0 43 if IDF_TARGET_ESP32S2
+				range 0 21 if IDF_TARGET_ESP32C3
 			config I2C_MANAGER_0_SCL
 				int "SCL (GPIO pin)"
 				default 22
 				range 0 39 if IDF_TARGET_ESP32
 				range 0 43 if IDF_TARGET_ESP32S2
+				range 0 21 if IDF_TARGET_ESP32C3
 			config I2C_MANAGER_0_FREQ_HZ
 				int "Frequency (Hz)"
 				default 1000000
@@ -66,11 +68,13 @@ menu "I2C Port Settings"
 				default 32
 				range 0 39 if IDF_TARGET_ESP32
 				range 0 43 if IDF_TARGET_ESP32S2
+				range 0 21 if IDF_TARGET_ESP32C3
 			config I2C_MANAGER_1_SCL
 				int "SCL (GPIO pin)"
 				default 33
 				range 0 39 if IDF_TARGET_ESP32
 				range 0 43 if IDF_TARGET_ESP32S2
+				range 0 21 if IDF_TARGET_ESP32C3
 			config I2C_MANAGER_1_FREQ_HZ
 				int "Frequency (Hz)"
 				default 1000000
