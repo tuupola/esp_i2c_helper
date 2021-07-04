@@ -20,7 +20,7 @@ menu "I2C Port Settings"
 				range 0 21 if IDF_TARGET_ESP32C3
 			config I2C_MANAGER_0_FREQ_HZ
 				int "Frequency (Hz)"
-				default 1000000
+				default 400000
 				range 100000 5000000
 				help
 					The clock speed in Hz. Ranges from 100000 (100 kHz) to

@@ -79,7 +79,24 @@ static const uint8_t ACK_CHECK_EN = 1;
 
 	#define I2C_MANAGER_1_TIMEOUT 		CONFIG_I2C_MANAGER_1_TIMEOUT / portTICK_RATE_MS
 	#define I2C_MANAGER_1_LOCK_TIMEOUT	CONFIG_I2C_MANAGER_1_LOCK_TIMEOUT / portTICK_RATE_MS
-#endif	
+#endif
+
+
+static void i2c_send_address(i2c_cmd_handle_t cmd, uint16_t addr, i2c_rw_t rw) {
+	if ((addr & I2C_ADDR_10) == I2C_ADDR_10) {
+		i2c_master_write_byte(cmd, 0xF0 | ((addr & 0x3FF) >> 7) | rw, ACK_CHECK_EN);
+		i2c_master_write_byte(cmd, addr & 0xFF, ACK_CHECK_EN);
+	} else {
+		i2c_master_write_byte(cmd, (addr << 1) | rw, ACK_CHECK_EN);
+	}
+}
+
+static void i2c_send_register(i2c_cmd_handle_t cmd, uint32_t reg) {
+	if ((reg & I2C_REG_16) == I2C_REG_16) {
+	    i2c_master_write_byte(cmd, (reg & 0xFF00) >> 8, ACK_CHECK_EN);
+	}
+    i2c_master_write_byte(cmd, reg & 0xFF, ACK_CHECK_EN);
+}
 
 esp_err_t I2C_FN(_init)(i2c_port_t port) {
 
@@ -146,18 +163,14 @@ esp_err_t I2C_FN(_init)(i2c_port_t port) {
     return ret;
 }
 
-esp_err_t I2C_FN(_read)(i2c_port_t port, uint8_t addr, uint8_t reg, uint8_t *buffer, uint16_t size) {
+esp_err_t I2C_FN(_read)(i2c_port_t port, uint16_t addr, uint32_t reg, uint8_t *buffer, uint16_t size) {
 
     esp_err_t result;
 
     // May seem weird, but init starts with a check if it's needed, no need for that check twice.
 	I2C_FN(_init)(port);
 
-	if (reg) {
-	   	ESP_LOGD(TAG, "Reading addr 0x%02x reg 0x%02x port %d", addr, reg, port);
-	} else {
-		ESP_LOGD(TAG, "Reading addr CONFIG_I2C_MANAGER_1_ENABLED0x%02x port %d", addr, port);
-	}
+   	ESP_LOGD(TAG, "Reading port %d, addr 0x%03x, reg 0x%04x", port, addr, reg);
 
 	TickType_t timeout = 0;
 	#if defined (CONFIG_I2C_MANAGER_0_ENABLED)
@@ -173,23 +186,16 @@ esp_err_t I2C_FN(_read)(i2c_port_t port, uint8_t addr, uint8_t reg, uint8_t *buf
 
 	if (I2C_FN(_lock)((int)port) == ESP_OK) {
 		i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-		if (reg) {
+		if (reg != 0) {
 			/* When reading specific register set the addr pointer first. */
 			i2c_master_start(cmd);
-			i2c_master_write_byte(cmd, (addr << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
-			i2c_master_write(cmd, &reg, 1, ACK_CHECK_EN);
+			i2c_send_address(cmd, addr, I2C_MASTER_WRITE);
+			i2c_send_register(cmd, reg);
 		}
 		/* Read size bytes from the current pointer. */
 		i2c_master_start(cmd);
-		i2c_master_write_byte(
-			cmd,
-			(addr << 1) | I2C_MASTER_READ,
-			ACK_CHECK_EN
-		);
-		if (size > 1) {
-			i2c_master_read(cmd, buffer, size - 1, I2C_MASTER_ACK);
-		}
-		i2c_master_read_byte(cmd, buffer + size - 1, I2C_MASTER_NACK);
+		i2c_send_address(cmd, addr, I2C_MASTER_READ);
+		i2c_master_read(cmd, buffer, size, I2C_MASTER_LAST_NACK);
 		i2c_master_stop(cmd);
 		result = i2c_master_cmd_begin(port, cmd, timeout);
 		i2c_cmd_link_delete(cmd);
@@ -200,7 +206,7 @@ esp_err_t I2C_FN(_read)(i2c_port_t port, uint8_t addr, uint8_t reg, uint8_t *buf
 	}
 
     if (result != ESP_OK) {
-    	ESP_LOGW(TAG, "Error reading addr 0x%02x reg 0x%02x port %d", addr, reg, port);
+    	ESP_LOGW(TAG, "Error: %d", result);
     }
 
 	ESP_LOG_BUFFER_HEX_LEVEL(TAG, buffer, size, ESP_LOG_DEBUG);
@@ -208,14 +214,14 @@ esp_err_t I2C_FN(_read)(i2c_port_t port, uint8_t addr, uint8_t reg, uint8_t *buf
     return result;
 }
 
-esp_err_t I2C_FN(_write)(i2c_port_t port, uint8_t addr, uint8_t reg, const uint8_t *buffer, uint16_t size) {
+esp_err_t I2C_FN(_write)(i2c_port_t port, uint16_t addr, uint32_t reg, const uint8_t *buffer, uint16_t size) {
 
     esp_err_t result;
 
     // May seem weird, but init starts with a check if it's needed, no need for that check twice.
 	I2C_FN(_init)(port);
 
-    ESP_LOGD(TAG, "Writing addr 0x%02x reg 0x%02x port %d", addr, reg, port);
+    ESP_LOGD(TAG, "Writing port %d, addr 0x%03x, reg 0x%04x", port, addr, reg);
 
 	TickType_t timeout = 0;
 	#if defined (CONFIG_I2C_MANAGER_0_ENABLED)
@@ -231,10 +237,11 @@ esp_err_t I2C_FN(_write)(i2c_port_t port, uint8_t addr, uint8_t reg, const uint8
 
 	if (I2C_FN(_lock)((int)port) == ESP_OK) {
 		i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-		ESP_LOG_BUFFER_HEX_LEVEL(TAG, buffer, size, ESP_LOG_DEBUG);
 		i2c_master_start(cmd);
-		i2c_master_write_byte(cmd, (addr << 1) | I2C_MASTER_WRITE, ACK_CHECK_EN);
-		i2c_master_write_byte(cmd, reg, ACK_CHECK_EN);
+		i2c_send_address(cmd, addr, I2C_MASTER_WRITE);
+		if (reg != 0) {
+			i2c_send_register(cmd, reg);
+		}
 		i2c_master_write(cmd, (uint8_t *)buffer, size, ACK_CHECK_EN);
 		i2c_master_stop(cmd);
 		result = i2c_master_cmd_begin( port, cmd, timeout);
@@ -246,8 +253,10 @@ esp_err_t I2C_FN(_write)(i2c_port_t port, uint8_t addr, uint8_t reg, const uint8
 	}
 
     if (result != ESP_OK) {
-    	ESP_LOGW(TAG, "Error writing addr 0x%02x reg 0x%02x port %d", addr, reg, port);
+    	ESP_LOGW(TAG, "Error: %d", result);
     }
+
+	ESP_LOG_BUFFER_HEX_LEVEL(TAG, buffer, size, ESP_LOG_DEBUG);
 
     return result;
 }

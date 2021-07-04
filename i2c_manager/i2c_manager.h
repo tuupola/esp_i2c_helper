@@ -11,8 +11,8 @@ extern "C" {
     If you copy the i2c_manager files to your own component instead of
     depending on i2c_manager, you MUST uncomment the define below
     and put in some short string that identifies your component (such
-    as 'lvgl'). This will cause i2c_manager to create functions named
-    lvgl_i2c_* instead of i2c_manager_*. See README.md for details.
+    as 'xyz'). This will cause i2c_manager to create functions named
+    xyz_i2c_* instead of i2c_manager_*. See README.md for details.
 
 */
 
@@ -37,9 +37,13 @@ extern "C" {
 
 #define I2C_FN(s)         CONCAT(I2C_NAME_PREFIX, s)
 
+
+#define I2C_ADDR_10 ( 2^15 )
+#define I2C_REG_16  ( 2^31 )
+
 esp_err_t I2C_FN(_init)(i2c_port_t port);
-esp_err_t I2C_FN(_read)(i2c_port_t port, uint8_t addr, uint8_t reg, uint8_t *buffer, uint16_t size);
-esp_err_t I2C_FN(_write)(i2c_port_t port, uint8_t addr, uint8_t reg, const uint8_t *buffer, uint16_t size);
+esp_err_t I2C_FN(_read)(i2c_port_t port, uint16_t addr, uint32_t reg, uint8_t *buffer, uint16_t size);
+esp_err_t I2C_FN(_write)(i2c_port_t port, uint16_t addr, uint32_t reg, const uint8_t *buffer, uint16_t size);
 esp_err_t I2C_FN(_close)(i2c_port_t port);
 esp_err_t I2C_FN(_lock)(i2c_port_t port);
 esp_err_t I2C_FN(_unlock)(i2c_port_t port);

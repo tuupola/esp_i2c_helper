@@ -78,29 +78,29 @@ If your new driver is an ESP-IDF component that always needs to talk via I2C, th
 
 #### Other Way: Integrating I2C Manager Inside Your Component
 
-[LVGL - Light and Versatile Graphics Library](https://github.com/lvgl/lvgl) is a graphical interface library that I can recommend. I [modified](https://github.com/ropg/lvgl_esp_drivers) `lvgl_esp_drivers`, its ESP32 driver package to use I2C Manager as an example of the procedure below, because this is the case as described above: a display and touch interface that only in some configurations needs to talk to hardware via I2C. To integrate I2C Manager inside your component:
+[LVGL - Light and Versatile Graphics Library](https://github.com/lvgl/lvgl) is a graphical interface library that I can recommend. I2C Manager has been integrated in the [ESP32 driver package](https://github.com/lvgl/lvgl_esp32_drivers) `lvgl_esp_drivers`. This is = an example of the procedure outlined below, because this is the case as described above: a display and touch interface that only in some configurations need to talk to hardware via I2C. To integrate I2C Manager inside your component:
 
 1. Copy the inner `i2c_manager` directory (i.e. `i2c_manager/i2c_manager` to the root of your component.
 
 2. Uncomment the `#define` in the i2c_manager.h file within that directory to name your component:
 
-	`#define I2C_OEM componentXYZ`   <--- use short name of your component here, naturally
+	`#define I2C_OEM xyz`   <--- use some short name of your component here
 
 3. Make sure the `i2c_manager.c` file compiles when your component gets built, even though it's in a sub-directory. This is done by adding `"i2c_manager/i2c_manager.c"` to the SRCS directive of the `idf_component_register` command (in ESP-IDF 4.x) and/or adding `./i2c_manager` to `COMPONENT_SRCDIRS` in `component.mk` (for ESP-IDF 3.x).
 
-	> Note: It's important that this `i2c_manager` directory is **not** added to the inlcude directories for your component.
+	> Note: It's important that this `i2c_manager` directory is **not** added to the include directories for your component.
 
 4. Add the following to your component's `componentXYZ.h` file:
 
-	`void componentXYZ_i2c_locking(void* leader);`
+	`void xyz_i2c_locking(void* leader);`
 
 5. Add the following inside your component's Kconfig menu:
 
 	`rsource "i2c_manager/Kconfig"`
 
-And voila: now I2C Manager is integrated inside the component, which now has built-in I2C support without external dependencies. To use it, use `componentXYZ_i2c_read` where you would otherwise use `i2c_manager_read` and the same for `componentXYZ_i2c_write`. The menuconfig will show the settings for both I2C ports. You may want to include a configuration option to determine which I2C port your component uses. If multiple components integrate I2C Manager in this way, the I2C port settings menu will show under each component, but they will show the same settings. A port open error will occur if multiple components use the same port, but I2C manager will just log a warning and continue when getting this error.
+And voila: now I2C Manager is integrated inside the component, which now has built-in I2C support without external dependencies. To use it, use `xyz_i2c_read` where you would otherwise use `i2c_manager_read` and the same for `xyz_i2c_write`. The menuconfig will show the settings for both I2C ports. You may want to include a configuration option to determine which I2C port your component uses. If multiple components integrate I2C Manager in this way, the I2C port settings menu will show under each component, but they will show the same settings. A port open error will occur if multiple components use the same port, but I2C manager will just log a warning and continue when getting this error.
 
-**Making things thread-safe:** To make sure the component is thread-safe when others call I2C ports, users can opt to put I2C Manager in the components directory, and tell your component to use I2C Manager's locking. In the main program, after including both `ix2c_manager.h` and your component's `componentXYZ.h` file, this is done like this:
+**Making things thread-safe:** To make sure the component is thread-safe when others call I2C ports, users can opt to put I2C Manager in the components directory, and tell your component to use I2C Manager's locking. In the main program, after including both `i2c_manager.h` and your component's `componentXYZ.h` file, this is done like this:
 
   `componentXYZ_locking(i2c_manager_locking());`
 
@@ -130,22 +130,34 @@ printf("cbat: %.2fmAh", cbat);
 
 When you do this, everything is thread-safe. I2C Manager replaces Mika's [`esp_i2c_helper`](https://github.com/tuupola/esp_i2c_helper) component, and as a bonus is slightly easier to use in your own code because you do not have to futz with the HAL struct yourself.
 
+>Note that the I2C HAL as defined does not support 10-bit addresses or 16-bit registers (see below).
+
 &nbsp;
 
+
+### 10-bit addresses and 16-bit registers
+
+In most cases, I2C uses 7-bit addresses and an 8-bit register value. You do not need to do anything special in that case. On some ICs you read or write without specifying a register. In that case, use 0 as the register value.
+
+Sometimes you'll see an 8-bit values for the address, usually with a separate address for read and write. Although this is how the byte is actually sent in the I2C protocol (the address is shifted left and a read/write bit is added), documenting it this way is deeply wrong and the address should be interpreted as 7-bit address by dividing the lower number by two.
+
+I2C addresses can also be 10-bit values with some ICs. To signal the use of 10-bit addresses, bitwise-OR the address value you send to `i2c_manager_read` or `i2c_manager_write` with `I2C_ADDR_10`. Similarly, to use 16-bit register values, bitwise-OR the register value with `I2C_REG_16`.
+
+&nbsp;
 
 ### I2C Manager Function Reference
 
 #### read, write
 
 ```c
-esp_err_t i2c_manager_read(i2c_port_t port, uint8_t addr, uint8_t reg, uint8_t *buffer, uint16_t size);
+esp_err_t i2c_manager_read(i2c_port_t port, uint16_t addr, uint32_t reg, uint8_t *buffer, uint16_t size);
 
-esp_err_t i2c_manager_write(i2c_port_t port, uint8_t addr, uint8_t reg, const uint8_t *buffer, uint16_t size);
+esp_err_t i2c_manager_write(i2c_port_t port, uint16_t addr, uint32_t reg, const uint8_t *buffer, uint16_t size);
 ```
 
 Straightforward: read or write `size` bytes between `buffer` and register `reg` of the chip at I2C address `address`. Most likely these are the only functions you will ever need to call, everything else happens automatically. See the example all the way at the beginning of this text for an example of how to use them.
 
-> Note that these exact same functions are called `componentXYZ_i2c_read` and `componentXYZ_i2c_read` when I2C Manager is integrated in componentXYZ.
+> Note that these exact same functions might be called `xyz_i2c_read` and `xyz_i2c_write` when I2C Manager is integrated in componentXYZ.
 
 
 #### locking
@@ -154,7 +166,7 @@ Straightforward: read or write `size` bytes between `buffer` and register `reg` 
 void* i2c_manager_locking();
 ```
 
-You will only need this if you use a component that has I2C Manager integrated (See "Other Way" above). This returns a pointer to the two semaphore handles that make up the mutex locking mechanism for I2C manager. Never mind if that doesn't mean anything to you: simply provide this pointer to the `componentXYZ_locking` function of the component and their I2C communication will play nice with everyone else's.
+You will only need this if you use a component that has I2C Manager integrated (See "Other Way" above). This returns a pointer to the two semaphore handles that make up the mutex locking mechanism for I2C manager. Never mind if that doesn't mean anything to you: simply provide this pointer to the `xyz_locking` function of the component and their I2C communication will play nice with everyone else's.
 
 #### init     &nbsp;&nbsp; *(you don't need this)*
 
