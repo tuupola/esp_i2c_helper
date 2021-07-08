@@ -35,11 +35,12 @@ extern "C" {
 #endif
 #define I2C_TAG STR_EXPAND(I2C_NAME_PREFIX)
 
-#define I2C_FN(s)         CONCAT(I2C_NAME_PREFIX, s)
+#define I2C_FN(s) CONCAT(I2C_NAME_PREFIX, s)
 
 
-#define I2C_ADDR_10 ( 2^15 )
-#define I2C_REG_16  ( 2^31 )
+#define I2C_ADDR_10 ( 1 << 15 )
+#define I2C_REG_16  ( 1 << 31 )
+#define I2C_NO_REG  ( 1 << 30 )
 
 esp_err_t I2C_FN(_init)(i2c_port_t port);
 esp_err_t I2C_FN(_read)(i2c_port_t port, uint16_t addr, uint32_t reg, uint8_t *buffer, uint16_t size);

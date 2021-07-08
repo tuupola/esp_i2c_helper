@@ -27,7 +27,7 @@ So what we need is not just hardware abstraction, but also a way to prevent diff
 
 ### Existing Solutions
 
-I'm not aware of thread-safe abstractions, but there are hardware abstraction layers for I2C. I2C Manager started as a fork of Mika Tuupola's [`esp_i2c_helper`](https://github.com/tuupola/esp_i2c_helper). I2C Manager is compatible with it, so any drivers written by Mika or others using his hardware abstraction standard will just work. There are a few different ways to use I2C manager, but one of them is to use it as a drop-in replacement for I2C Helper that makes everything thread-safe.
+I'm not aware of thread-safe abstractions, but there are hardware abstraction layers for I2C. I2C Manager started as a fork of Mika Tuupola's [`esp_i2c_helper`](https://github.com/tuupola/esp_i2c_helper). I2C Manager is compatible with it, so any drivers written by Mika or others using his hardware abstraction standard will just work. There are a few different ways to use I2C Manager, but one of them is to use it as a drop-in replacement for I2C Helper that makes everything thread-safe.
 
 &nbsp;
 
@@ -135,11 +135,13 @@ When you do this, everything is thread-safe. I2C Manager replaces Mika's [`esp_i
 &nbsp;
 
 
+### read and write without specifying a register
+
+In most cases, I2C uses 7-bit addresses and an 8-bit register value. You do not need to do anything special in that case. On some ICs you read or write without specifying a register. In that case, use `I2C_NO_REG` as the register value.
+
 ### 10-bit addresses and 16-bit registers
 
-In most cases, I2C uses 7-bit addresses and an 8-bit register value. You do not need to do anything special in that case. On some ICs you read or write without specifying a register. In that case, use 0 as the register value.
-
-Sometimes you'll see an 8-bit values for the address, usually with a separate address for read and write. Although this is how the byte is actually sent in the I2C protocol (the address is shifted left and a read/write bit is added), documenting it this way is deeply wrong and the address should be interpreted as 7-bit address by dividing the lower number by two.
+Sometimes you'll see 8-bit values for the address, usually with a separate address for read and write. Although this is how the byte is actually sent in the I2C protocol (the address is shifted left and a read/write bit is added), documenting it this way is deeply wrong and the address should be interpreted as 7-bit address by dividing the lower number by two.
 
 I2C addresses can also be 10-bit values with some ICs. To signal the use of 10-bit addresses, bitwise-OR the address value you send to `i2c_manager_read` or `i2c_manager_write` with `I2C_ADDR_10`. Similarly, to use 16-bit register values, bitwise-OR the register value with `I2C_REG_16`.
 
