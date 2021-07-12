@@ -16,7 +16,7 @@ extern "C" {
 
 */
 
-// #define I2C_OEM componentXYZ
+// #define I2C_OEM xyz
 
 
 // Only here to get the I2C_NUM_0 and I2C_NUM_1 defines.
