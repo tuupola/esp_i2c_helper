@@ -136,42 +136,59 @@ If your new driver is an ESP-IDF component that always needs to talk via I2C, th
 
 To integrate I2C Manager inside your component:
 
-Step 1
+<dl>
 
-: Copy only the inner `i2c_manager` directory from this repository (so that's `i2c_manager/i2c_manager` to the root of your component.
+<dt>Step 1</dt>
 
-Step 2
+<dd>
+Copy only the inner `i2c_manager` directory from this repository (so that's `i2c_manager/i2c_manager` to the root of your component.
+</dd>
 
-: Uncomment the `#define` in the `i2c_manager.h` file within that directory to provide a very short, lower-case-only name your component. So if your component is called `XYZ Driver`, you might do `#define I2C_OEM xyz`.
+<dt>Step 2</dt>
 
-Step 3
+<dd>
+Uncomment the "#define I2C_OEM" in the `i2c_manager.h` file within that directory to provide a very short, lower-case-only name your component. So if your component is called `XYZ Driver`, you might say
 
-: Make sure the `i2c_manager.c` file gets compiled when your component gets built, even though it's in a sub-directory. This is done by adding `"i2c_manager/i2c_manager.c"` to the `SRCS` directive of the `idf_component_register` command (in ESP-IDF 4.x) and/or adding `./i2c_manager` to `COMPONENT_SRCDIRS` in `component.mk` (for ESP-IDF 3.x).
+ `#define I2C_OEM xyz`
+ </dd>
 
-	_Note: It's important that this `i2c_manager` directory is **not** added to the include directories for your component. Your code should include it, but your component's users should not._
+<dt>Step 3</dt>
 
-Step 4
+<dd>
+Make sure i2c_manager.c gets compiled when your component gets built, even though it's in a sub-directory. This is done by adding "i2c_manager/i2c_manager.c" to the "SRCS" directive of the "idf_component_register" command (in ESP-IDF 4.x) and/or adding "./i2c_manager" to `COMPONENT_SRCDIRS` in "component.mk" (for ESP-IDF 3.x).
 
-: Add the following to the file your compnent's users will include:
+> _Note: It's important that this `i2c_manager` directory is **not** added to the include directories for your component. Your code should include it, but your component's users should not._
+</dd>
 
-	`void xyz_i2c_locking(void* leader);`
+<dt>Step 4</dt>
 
-Step 5
+<dd>
+Add the following line to the file your compnent's users will include:
 
-: Add the following inside your component's Kconfig menu:
+`void xyz_i2c_locking(void* leader);`
 
-	```
-	menu "I2C Port Settings"
-        depends on !HAVE_I2C_MANAGER
+(where 'xyz' is the short string chosen in sep 2)
+</dd>
+<dt>Step 5</dt>
 
-        rsource "i2c_manager/Kconfig"
-    
-    endmenu
-	```
+<dd>
+Add the following inside your component's Kconfig menu:
+
+```
+menu "I2C Port Settings"
+	depends on !HAVE_I2C_MANAGER
+
+	rsource "i2c_manager/Kconfig"
+
+endmenu
+```
+</dd>
+
+</dl>
 
 And voila: now I2C Manager is integrated inside the component, which now has built-in I2C support without external dependencies. To use it, use `xyz_i2c_read` where you would otherwise use `i2c_manager_read` and the same for `xyz_i2c_write`. The menuconfig will show the settings for both I2C ports. You may want to include a configuration option in your Kconfig file to determine which I2C port your component uses, and you could optionally make the showing of this selection and the menu above conditional on your component actually needing I2C communication.
 
-**Making things thread-safe:** To make sure I2C calls are thread-safe when others use I2C ports, users would put I2C Manager in the components directory, and tell your component to use I2C Manager's locking. In the main program, after including both `i2c_manager.h` and your component's `xyz.h` file, this is done like this:
+**Making things thread-safe:** To make sure I2C calls are thread-safe when others use I2C ports, users would put I2C Manager in the components directory, and tell your component to use I2C Manager's locking. In the main program, after including both `i2c_manager.h` and your component's header file (see step 4 above), this is done like this:
 
   `xyz_i2c_locking(i2c_manager_locking());`
 
