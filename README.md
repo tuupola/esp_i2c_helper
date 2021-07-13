@@ -11,7 +11,7 @@
 
 The ESP32's I2C drivers work, but they are built for one piece of code to open, use and close a port. Currently configuring components that talk to peripherals on an I2C bus involves providing the same SDA and SDC pins and clock speeds again and again. Everyone's code ends up duplicating the same string of low-level commands to talk to the ESP32 I2C driver. What's needed is a hardware abstraction layer (HAL) that can just read and write bytes to I2C connected hardware, plain and simple.
 
-But we need more than that: when components actually want to use the same I2C bus, they will get errors when the port is already open. People sometimes end up editing component code to ignore the error from `i2c_driver_install` in all but the first component initialised.
+But we need more than that: when components actually want to use the same I2C bus, they will get errors when the port is already open. People sometimes end up editing component code to ignore the error from `i2c_driver_install` in all but the first component initialized.
 
 ### "The Multi-Thread Issue"
 
@@ -49,7 +49,7 @@ i2c_manager_write(I2C_NUM_0, 0x13, 0x37, &buffer, 10);
 
 This example reads ten bytes via the first I2C port from the chip at I2C address `0x23`, register `0x42` and then writes them to the chip at `0x13` at register `0x37`. You could now have ten different tasks reading and writing to the same I2C bus using I2C Manager and the FreeRTOS scheduler would make them all wait nicely for their turn at the port.
 
-That is it, all there is to it. As you can see there is no initialisation needed: the first time someone acesses an I2C port it will be set up automatically.
+That is it, all there is to it. As you can see there is no initialization needed: the first time someone accesses an I2C port it will be set up automatically.
 
 
 &nbsp;
@@ -163,11 +163,11 @@ Make sure i2c_manager.c gets compiled when your component gets built, even thoug
 <dt>Step 4</dt>
 
 <dd>
-Add the following line to the file your compnent's users will include:
+Add the following line to the file your component's users will include:
 
 `void xyz_i2c_locking(void* leader);`
 
-(where 'xyz' is the short string chosen in sep 2)
+(where 'xyz' is the short string chosen in step 2)
 </dd>
 <dt>Step 5</dt>
 
