@@ -30,6 +30,7 @@ SOFTWARE.
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "i2c_helper.h"
 
@@ -40,6 +41,8 @@ int32_t i2c_init(i2c_port_t port) {
     ESP_LOGI(TAG, "Starting I2C master at port %d.", port);
 
     i2c_config_t conf;
+    memset(&conf, 0, sizeof(i2c_config_t));
+
     conf.mode = I2C_MODE_MASTER;
     conf.sda_pullup_en = GPIO_PULLUP_DISABLE;
     conf.scl_pullup_en = GPIO_PULLUP_DISABLE;
