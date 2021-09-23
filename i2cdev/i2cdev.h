@@ -30,6 +30,9 @@ SOFTWARE.
 #ifndef __I2CDEV_H__
 #define __I2CDEV_H__
 
+#include <driver/i2c.h>
+#include <esp_err.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -61,6 +64,32 @@ esp_err_t i2c_dev_read_reg(const i2c_dev_t *dev, uint8_t reg,
 esp_err_t i2c_dev_write_reg(const i2c_dev_t *dev, uint8_t reg,
         const void *out_data, size_t out_size);
 
+#define I2C_DEV_TAKE_MUTEX(dev) do { \
+        esp_err_t __ = ESP_OK; \
+        if (__ != ESP_OK) return __;\
+    } while (0)
+
+#define I2C_DEV_GIVE_MUTEX(dev) do { \
+        esp_err_t __ = ESP_OK; \
+        if (__ != ESP_OK) return __;\
+    } while (0)
+
+#define I2C_DEV_CHECK(dev, X) do { \
+        esp_err_t ___ = X; \
+        if (___ != ESP_OK) { \
+            I2C_DEV_GIVE_MUTEX(dev); \
+            return ___; \
+        } \
+    } while (0)
+
+#define I2C_DEV_CHECK_LOGE(dev, X, msg, ...) do { \
+        esp_err_t ___ = X; \
+        if (___ != ESP_OK) { \
+            I2C_DEV_GIVE_MUTEX(dev); \
+            ESP_LOGE(TAG, msg, ## __VA_ARGS__); \
+            return ___; \
+        } \
+    } while (0)
 
 #ifdef __cplusplus
 }
