@@ -222,7 +222,7 @@ esp_err_t I2C_FN(_read)(i2c_port_t port, uint16_t addr, uint32_t reg, uint8_t *b
 	}
 
     if (result != ESP_OK) {
-    	ESP_LOGW(TAG, "Error: %d", result);
+    	ESP_LOGD(TAG, "Error: %d", result);
     }
 
 	ESP_LOG_BUFFER_HEX_LEVEL(TAG, buffer, size, ESP_LOG_VERBOSE);
@@ -271,7 +271,7 @@ esp_err_t I2C_FN(_write)(i2c_port_t port, uint16_t addr, uint32_t reg, const uin
 	}
 
     if (result != ESP_OK) {
-    	ESP_LOGW(TAG, "Error: %d", result);
+    	ESP_LOGD(TAG, "Error: %d", result);
     }
 
 	ESP_LOG_BUFFER_HEX_LEVEL(TAG, buffer, size, ESP_LOG_VERBOSE);
