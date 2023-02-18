@@ -103,7 +103,7 @@ int32_t i2c_read(void *handle, uint8_t address, uint8_t reg, uint8_t *buffer, ui
     result = i2c_master_cmd_begin(
         port,
         cmd,
-        1000 / portTICK_RATE_MS
+        1000 / portTICK_PERIOD_MS
     );
     i2c_cmd_link_delete(cmd);
 
@@ -130,7 +130,7 @@ int32_t i2c_write(void *handle, uint8_t address, uint8_t reg, const uint8_t *buf
     result = i2c_master_cmd_begin(
         port,
         cmd,
-        1000 / portTICK_RATE_MS
+        1000 / portTICK_PERIOD_MS
     );
     i2c_cmd_link_delete(cmd);
 
